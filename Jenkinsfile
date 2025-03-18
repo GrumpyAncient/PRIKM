@@ -15,7 +15,7 @@ pipeline {
         }
         stage('Push to registry') {
             steps {
-                withDockerRegistry([ credentialsId: "ID_облікових даних", url: "" ]) {
+                withDockerRegistry([ credentialsId: "dockerHub_token", url: "" ]) {
                     sh "docker push vasylsavka/prikm:latest"
                     sh "docker push vasylsavka/prikm:$BUILD_NUMBER"
                 }
