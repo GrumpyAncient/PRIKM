@@ -13,6 +13,11 @@ pipeline {
                 sh "docker tag prikm vasylsavka/prikm:$BUILD_NUMBER"
             }
         }
+        stage('Test image') {
+            steps {
+                sh "docker images | grep prikm"
+            }
+        }
         stage('Push to registry') {
             steps {
                 withDockerRegistry([ credentialsId: "dockerHub_token", url: "" ]) {
