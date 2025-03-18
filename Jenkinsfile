@@ -8,16 +8,27 @@ pipeline {
         }
         stage('Image build') {
             steps {
-                sh "docker build -t prikm:latest ."
-                sh "docker tag prikm vasylsavka/prikm:latest"
-                sh "docker tag prikm vasylsavka/prikm:$BUILD_NUMBER"
+                script {
+                    def IMAGE_NAME = "vasylsavka/prikm"
+                    def BUILD_TAG = sh(script: "date +%Y%m%d%H%M%S", returnStdout: true).trim()
+                    
+                    sh "docker build -t ${IMAGE_NAME}:latest ."
+                    sh "docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${BUILD_NUMBER}"
+                    sh "docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${BUILD_TAG}"
+                }
             }
         }
         stage('Push to registry') {
             steps {
-                withDockerRegistry([ credentialsId: "dockerHub_token", url: "" ]) {
-                    sh "docker push vasylsavka/prikm:latest"
-                    sh "docker push vasylsavka/prikm:$BUILD_NUMBER"
+                script {
+                    def IMAGE_NAME = "vasylsavka/prikm"
+                    def BUILD_TAG = sh(script: "date +%Y%m%d%H%M%S", returnStdout: true).trim()
+
+                    withDockerRegistry([credentialsId: "dockerHub_token", url: ""]) {
+                        sh "docker push ${IMAGE_NAME}:latest"
+                        sh "docker push ${IMAGE_NAME}:${BUILD_NUMBER}"
+                        sh "docker push ${IMAGE_NAME}:${BUILD_TAG}"
+                    }
                 }
             }
         }
