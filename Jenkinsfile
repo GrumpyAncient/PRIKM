@@ -9,21 +9,21 @@ pipeline {
         stage('Image build') {
             steps {
                 sh "docker build -t prikm:latest ."
-                sh "docker tag prikm назва_акаунту_dockerhub/prikm:latest"
-                sh "docker tag prikm назва_акаунту_dockerhub/prikm:$BUILD_NUMBER"
+                sh "docker tag prikm vasylsavka/prikm:latest"
+                sh "docker tag prikm vasylsavka/prikm:$BUILD_NUMBER"
             }
         }
         stage('Push to registry') {
             steps {
                 withDockerRegistry([ credentialsId: "ID_облікових даних", url: "" ]) {
-                    sh "docker push назва_акаунту_dockerhub/prikm:latest"
-                    sh "docker push назва_акаунту_dockerhub/prikm:$BUILD_NUMBER"
+                    sh "docker push vasylsavka/prikm:latest"
+                    sh "docker push vasylsavka/prikm:$BUILD_NUMBER"
                 }
             }
         }
         stage('Deploy image') {
             steps {
-                sh "docker run -d -p 80:80 назва_акаунту_dockerhub/prikm"
+                sh "docker run -d -p 80:80 vasylsavka/prikm"
             }
         }
     }
