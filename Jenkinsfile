@@ -1,35 +1,48 @@
 pipeline {
     agent any
+    triggers {
+        cron('H H * * *') // щоденний запуск в довільний час
+    }
+    properties([
+        parameters([
+            string(name: 'GREETING', defaultValue: 'Hello', description: 'Привітання'),
+            booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Виконувати тести?')
+        ]),
+        office365ConnectorWebhooks(webhooks: [
+            [
+                name: 'Teams-ci-notifications',
+                url: 'https://lpnu.webhook.office.com/webhookb2/687e750c-bcee-4590-941e-c594a6d020c9@7631cd62-5187-4e15-8b8e-ef653e366e7a/IncomingWebhook/0f62f9720b8047398e1d80d0a66cb305/ce7527d8-657b-4c4b-a503-21037b76bdf3/V2V6HRLMo5jxqd2JPpdyiC0eH4E3PB0f1ok3UhcEhUjJ81',
+                startNotification: false,
+                notifySuccess: true,
+                notifyUnstable: true,
+                notifyFailure: true,
+                notifyBackToNormal: true,
+                timeout: 30000
+            ]
+        ])
+    ])
     stages {
-        stage('Start') {
+        stage('Build') {
             steps {
-                echo 'Lab_2: started by GitHub'
+                echo 'Building project...'
+                // Тут можуть бути команди збірки
             }
         }
-        stage('Image build') {
+        stage('Test') {
+            when { expression { params.RUN_TESTS } }
             steps {
-                sh "docker build -t prikm:latest ."
-                sh "docker tag prikm vasylsavka/prikm:latest"
-                sh "docker tag prikm vasylsavka/prikm:$BUILD_NUMBER"
+                echo "Running tests with greeting: ${params.GREETING}"
+                // Додайте ваші команди тестування
             }
         }
-        stage('Test image') {
-            steps {
-                sh "docker images | grep prikm"
-            }
-        }
-        stage('Push to registry') {
-            steps {
-                withDockerRegistry([ credentialsId: "dockerHub_token", url: "" ]) {
-                    sh "docker push vasylsavka/prikm:latest"
-                    sh "docker push vasylsavka/prikm:$BUILD_NUMBER"
-                }
-            }
-        }
-        stage('Deploy image') {
-            steps {
-                sh "docker run -d -p 80:80 vasylsavka/prikm"
-            }
+    }
+    post {
+        always {
+            publishHTML(target: [
+                reportDir: 'reports',
+                reportFiles: 'index.html',
+                reportName: 'HTML Report'
+            ])
         }
     }
 }
